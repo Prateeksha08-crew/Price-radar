@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PriceRadar — India Smart Price Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0d1b4b;--navy2:#1a2a6c;--navy3:#1e3a8a;--navy4:#1d4ed8;
+  --purple:#7c3aed;--purple2:#8b5cf6;--purple3:#a78bfa;--purple4:#ede9fe;
+  --purple5:#f5f3ff;
+  --card:#ffffff;--card2:#f8f7ff;
+  --border:rgba(124,58,237,0.13);--border2:rgba(124,58,237,0.22);
+  --text:#0f172a;--text2:#334155;--text3:#64748b;--text4:#94a3b8;
+  --green:#059669;--amber:#d97706;--red:#dc2626;--pink:#db2777;
+  --r:10px;--rl:14px;--rxl:20px;
+  --shadow:0 2px 16px rgba(13,27,75,0.10);
+  --shadow2:0 4px 32px rgba(13,27,75,0.14);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--purple5);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── NAVBAR ── */
+.navbar{
+  width:100%;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 60%,var(--navy3) 100%);
+  padding:0 40px;display:flex;align-items:center;justify-content:space-between;
+  height:64px;position:sticky;top:0;z-index:100;
+  box-shadow:0 4px 24px rgba(13,27,75,0.35);
+  border-bottom:2px solid rgba(139,92,246,0.4);
+}
+.nav-left{display:flex;align-items:center;gap:16px;}
+.nav-logo{width:38px;height:38px;border-radius:10px;
+  background:linear-gradient(135deg,var(--purple2),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 16px rgba(139,92,246,0.5);}
+.nav-logo svg{width:20px;height:20px;}
+.nav-title{font-size:22px;font-weight:800;letter-spacing:-0.04em;color:#fff;}
+.nav-title span{color:var(--purple3);}
+.nav-sub{font-size:11px;color:rgba(167,139,250,0.7);font-family:'JetBrains Mono',monospace;margin-top:1px;}
+.nav-tabs{display:flex;gap:4px;margin-left:48px;}
+.nav-tab{padding:7px 20px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;
+  color:rgba(255,255,255,0.55);border:none;background:transparent;transition:all .2s;letter-spacing:.01em;}
+.nav-tab:hover{color:rgba(255,255,255,0.85);background:rgba(255,255,255,0.07);}
+.nav-tab.active{background:rgba(139,92,246,0.25);color:#fff;
+  border:1px solid rgba(139,92,246,0.45);}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.key-ok{font-size:10px;font-family:'JetBrains Mono',monospace;
+  background:rgba(5,150,105,0.15);border:1px solid rgba(5,150,105,0.3);
+  color:#34d399;padding:5px 10px;border-radius:7px;}
+
+/* ── MAIN ── */
+.main{max-width:1260px;margin:0 auto;padding:32px 32px 80px;}
+.tab-panel{display:none;} .tab-panel.active{display:block;}
+
+/* ── UPLOAD ── */
+.upload-wrap{
+  background:var(--card);border:2px dashed var(--border2);border-radius:var(--rxl);
+  padding:56px 40px;text-align:center;cursor:pointer;transition:all .2s;
+  box-shadow:var(--shadow);}
+.upload-wrap:hover,.upload-wrap.dragover{
+  border-color:var(--purple2);background:var(--purple4);}
+.upload-svg{width:52px;height:52px;margin:0 auto 16px;
+  background:linear-gradient(135deg,var(--purple4),var(--purple5));
+  border-radius:14px;border:1.5px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;}
+.upload-svg svg{width:24px;height:24px;}
+.upload-title{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px;}
+.upload-sub{font-size:13px;color:var(--text3);}
+.upload-sub span{color:var(--purple);text-decoration:underline;cursor:pointer;font-weight:500;}
+#fileInput{display:none;}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px;}
+.stat-card{
+  background:var(--card);border-radius:var(--rl);padding:18px 20px;
+  border:1.5px solid var(--border);box-shadow:var(--shadow);
+  position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s;}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow2);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--purple),var(--navy3));}
+.stat-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.stat-value{font-size:24px;font-weight:800;color:var(--navy);font-family:'JetBrains Mono',monospace;letter-spacing:-.02em;}
+.stat-sub{font-size:10px;color:var(--text4);margin-top:3px;}
+
+/* ── SECTION HEADING ── */
+.section-head{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.section-head-line{width:4px;height:22px;border-radius:2px;
+  background:linear-gradient(180deg,var(--purple),var(--navy3));}
+.section-head h2{font-size:16px;font-weight:700;color:var(--navy);}
+
+/* ── COMPARE PANEL ── */
+.compare-controls{
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--rl);
+  padding:20px 24px;margin-bottom:22px;display:flex;gap:14px;align-items:flex-end;
+  flex-wrap:wrap;box-shadow:var(--shadow);}
+.filter-group{display:flex;flex-direction:column;gap:6px;}
+.filter-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--navy2);
+  text-transform:uppercase;letter-spacing:.1em;font-weight:600;}
+.compare-select{
+  background:var(--purple5);border:1.5px solid var(--border2);border-radius:var(--r);
+  padding:10px 14px;font-family:'Inter',sans-serif;font-size:13px;color:var(--text);
+  outline:none;min-width:240px;transition:border-color .2s;cursor:pointer;}
+.compare-select:focus{border-color:var(--purple2);}
+.compare-select option{background:#fff;}
+.compare-btn{
+  background:linear-gradient(135deg,var(--navy2),var(--navy3));
+  border:none;border-radius:var(--r);padding:11px 28px;font-size:13px;font-weight:700;
+  color:#fff;cursor:pointer;transition:all .2s;letter-spacing:.02em;
+  box-shadow:0 4px 14px rgba(13,27,75,0.3);}
+.compare-btn:hover{background:linear-gradient(135deg,var(--navy3),var(--purple));
+  box-shadow:0 6px 20px rgba(124,58,237,0.35);transform:translateY(-1px);}
+.compare-btn:active{transform:translateY(0);}
+
+/* ── WINNERS ── */
+.winners-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.winner-card{
+  background:var(--card);border-radius:var(--rl);padding:18px;text-align:center;
+  border:1.5px solid var(--border);box-shadow:var(--shadow);
+  transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;}
+.winner-card:hover{transform:translateY(-2px);box-shadow:var(--shadow2);}
+.winner-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--navy3),var(--purple2));}
+.winner-num{font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:700;
+  color:var(--purple);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.winner-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+.winner-platform{font-size:17px;font-weight:800;color:var(--navy);margin-bottom:3px;letter-spacing:-.02em;}
+.winner-val{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+
+/* ── COMPARE TABLE ── */
+.compare-table-wrap{
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--rl);
+  overflow:hidden;margin-bottom:22px;box-shadow:var(--shadow);}
+.compare-table{width:100%;border-collapse:collapse;}
+.compare-table th{
+  font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--navy2);
+  text-align:left;padding:13px 16px;
+  background:linear-gradient(90deg,var(--purple4),var(--purple5));
+  border-bottom:2px solid var(--border2);text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
+.compare-table td{font-size:12.5px;padding:13px 16px;border-bottom:1px solid var(--border);
+  vertical-align:middle;font-family:'JetBrains Mono',monospace;color:var(--text2);}
+.compare-table tr:last-child td{border-bottom:none;}
+.compare-table tr{transition:background .1s;}
+.compare-table tr:hover td{background:var(--purple5);}
+.compare-table tr.winner-row td{background:rgba(5,150,105,0.04);}
+.platform-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:8px;flex-shrink:0;}
+.platform-cell{display:flex;align-items:center;}
+.cheapest-tag{font-size:9px;font-family:'JetBrains Mono',monospace;
+  background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.25);
+  color:var(--green);padding:2px 8px;border-radius:20px;margin-left:8px;font-weight:600;}
+.price-bar-wrap{display:flex;align-items:center;gap:8px;}
+.price-bar-track{flex:1;height:5px;border-radius:3px;background:var(--purple4);min-width:60px;}
+.price-bar-fill{height:100%;border-radius:3px;transition:width .9s cubic-bezier(.4,0,.2,1);}
+.saving-highlight{color:var(--green);font-weight:700;}
+
+/* ── CHARTS ── */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px;}
+.chart-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--rl);
+  padding:20px;box-shadow:var(--shadow);}
+.chart-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--navy2);
+  text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:16px;}
+.chart-wrap{height:220px;position:relative;}
+
+/* ── INSIGHT ── */
+.insight-box{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);
+  border-radius:var(--rl);padding:24px 28px;margin-bottom:22px;
+  box-shadow:0 8px 32px rgba(13,27,75,0.25);}
+.insight-label{font-size:10px;font-family:'JetBrains Mono',monospace;
+  color:var(--purple3);text-transform:uppercase;letter-spacing:.15em;
+  margin-bottom:12px;display:flex;align-items:center;gap:10px;font-weight:700;}
+.insight-label::before{content:'';width:20px;height:2px;
+  background:linear-gradient(90deg,var(--purple2),transparent);}
+.insight-text{font-size:14px;line-height:1.8;color:rgba(255,255,255,0.88);}
+.insight-text.loading{color:rgba(167,139,250,0.6);font-style:italic;}
+.ai-btn{margin-top:14px;padding:9px 20px;
+  background:rgba(139,92,246,0.2);border:1px solid rgba(139,92,246,0.4);
+  border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;
+  color:var(--purple3);transition:all .15s;}
+.ai-btn:hover{background:rgba(139,92,246,0.35);color:#fff;}
+
+/* ── BROWSE FILTERS ── */
+.filters-bar{
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--rl);
+  padding:18px 20px;margin-bottom:18px;
+  display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:12px;align-items:end;
+  box-shadow:var(--shadow);}
+.filter-input,.filter-select{
+  background:var(--purple5);border:1.5px solid var(--border2);
+  border-radius:var(--r);padding:9px 13px;font-family:'Inter',sans-serif;
+  font-size:13px;color:var(--text);outline:none;transition:border-color .2s;width:100%;}
+.filter-input:focus,.filter-select:focus{border-color:var(--purple2);background:#fff;}
+.filter-input::placeholder{color:var(--text4);}
+.filter-select option{background:#fff;}
+.filter-btn{
+  background:linear-gradient(135deg,var(--navy2),var(--navy3));
+  border:none;border-radius:var(--r);padding:10px 20px;font-size:13px;
+  font-weight:700;color:#fff;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.filter-btn:hover{opacity:.85;}
+.results-meta{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.results-count{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.results-count strong{color:var(--navy);font-weight:700;}
+.sort-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text3);}
+.sort-wrap select{background:var(--card);border:1.5px solid var(--border2);
+  border-radius:8px;padding:6px 10px;font-size:12px;color:var(--text2);
+  font-family:'JetBrains Mono',monospace;outline:none;cursor:pointer;}
+
+/* ── BROWSE GRID ── */
+.browse-grid{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start;}
+.table-wrap{background:var(--card);border:1.5px solid var(--border);
+  border-radius:var(--rl);overflow:hidden;box-shadow:var(--shadow);}
+.prod-table{width:100%;border-collapse:collapse;}
+.prod-table th{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--navy2);
+  text-align:left;padding:12px 14px;font-weight:700;
+  background:linear-gradient(90deg,var(--purple4),var(--purple5));
+  border-bottom:2px solid var(--border2);text-transform:uppercase;letter-spacing:.08em;}
+.prod-table td{font-size:12px;padding:11px 14px;border-bottom:1px solid var(--border);
+  vertical-align:middle;color:var(--text2);}
+.prod-table tr:last-child td{border-bottom:none;}
+.prod-table tr{cursor:pointer;transition:background .1s;}
+.prod-table tr:hover td{background:var(--purple5);}
+.prod-table tr.selected td{background:var(--purple4);}
+.pname{font-weight:600;color:var(--navy);font-size:11.5px;line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:210px;}
+.pcat{font-size:10px;color:var(--text4);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.price-cell{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--navy);white-space:nowrap;}
+.disc-badge{display:inline-block;font-size:10px;font-family:'JetBrains Mono',monospace;
+  font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.disc-low{background:rgba(217,119,6,0.10);color:#92400e;border:1px solid rgba(217,119,6,0.25);}
+.disc-mid{background:rgba(5,150,105,0.10);color:#065f46;border:1px solid rgba(5,150,105,0.25);}
+.disc-high{background:rgba(124,58,237,0.10);color:var(--purple);border:1px solid rgba(124,58,237,0.3);}
+.disc-mega{background:rgba(219,39,119,0.10);color:#9d174d;border:1px solid rgba(219,39,119,0.25);}
+.rating-cell{font-family:'JetBrains Mono',monospace;color:var(--amber);font-weight:600;}
+.platform-badge{font-size:9px;font-family:'JetBrains Mono',monospace;
+  padding:3px 8px;border-radius:20px;font-weight:700;white-space:nowrap;}
+
+/* ── RIGHT PANEL ── */
+.right-panel{display:flex;flex-direction:column;gap:14px;}
+.detail-card{background:var(--card);border:1.5px solid var(--border);
+  border-radius:var(--rl);padding:20px;box-shadow:var(--shadow);}
+.detail-placeholder{padding:40px 16px;text-align:center;color:var(--text4);font-size:13px;
+  font-style:italic;}
+.detail-title{font-size:13px;font-weight:700;line-height:1.5;margin-bottom:14px;color:var(--navy);}
+.big-price{font-size:26px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--navy);}
+.big-mrp{font-size:12px;color:var(--text4);font-family:'JetBrains Mono',monospace;
+  text-decoration:line-through;margin-left:8px;}
+.price-row-top{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.detail-row{display:flex;justify-content:space-between;align-items:center;
+  padding:8px 0;border-bottom:1px solid var(--border);}
+.detail-row:last-of-type{border-bottom:none;}
+.detail-key{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;}
+.detail-val{font-size:12px;font-weight:600;font-family:'JetBrains Mono',monospace;color:var(--navy);}
+.scores{margin:14px 0;}
+.score-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.score-lbl{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3);
+  width:68px;flex-shrink:0;text-transform:uppercase;letter-spacing:.05em;}
+.score-track{flex:1;height:4px;border-radius:2px;background:var(--purple4);}
+.score-fill{height:100%;border-radius:2px;transition:width .9s cubic-bezier(.4,0,.2,1);}
+.score-num{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text3);
+  width:30px;text-align:right;flex-shrink:0;}
+.ai-card{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);
+  border-radius:var(--rl);padding:18px;box-shadow:0 8px 24px rgba(13,27,75,0.2);}
+.ai-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--purple3);
+  text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;font-weight:700;}
+.ai-label::before{content:'';width:14px;height:2px;background:var(--purple2);}
+.ai-text{font-size:12px;line-height:1.75;color:rgba(255,255,255,0.85);}
+.ai-text.loading{color:rgba(167,139,250,0.6);font-style:italic;}
+
+/* ── PAGINATION ── */
+.pagination{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:14px;}
+.page-btn{background:var(--card);border:1.5px solid var(--border2);border-radius:8px;
+  padding:6px 12px;font-size:11px;font-family:'JetBrains Mono',monospace;
+  color:var(--text3);cursor:pointer;transition:all .15s;font-weight:500;}
+.page-btn:hover{border-color:var(--purple2);color:var(--purple);background:var(--purple5);}
+.page-btn.active{background:linear-gradient(135deg,var(--navy2),var(--navy3));
+  border-color:transparent;color:#fff;box-shadow:0 2px 10px rgba(13,27,75,0.25);}
+.page-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* ── UTIL ── */
+.empty-state{padding:48px 20px;text-align:center;color:var(--text4);font-size:13px;}
+.hidden{display:none!important;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--purple5);}
+::-webkit-scrollbar-thumb{background:var(--purple3);border-radius:3px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.anim{animation:fadeUp .35s ease both;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.pulsing{animation:pulse 1.4s infinite;}
+@keyframes slideIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+.slide-in{animation:slideIn .3s ease both;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ NAVBAR ══════════════ -->
+<nav class="navbar">
+  <div class="nav-left">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
+      </svg>
+    </div>
+    <div>
+      <div class="nav-title">Price<span>Radar</span></div>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('compare')">Compare Platforms</button>
+      <button class="nav-tab" onclick="switchTab('browse')">Browse Products</button>
+    </div>
+  </div>
+  <div class="nav-right">
+    <span id="keyOk" class="key-ok hidden">AI Active</span>
+  </div>
+</nav>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<div class="main">
+
+  <!-- Upload -->
+  <div class="upload-wrap" id="uploadBanner"
+    onclick="document.getElementById('fileInput').click()"
+    ondragover="event.preventDefault();this.classList.add('dragover')"
+    ondragleave="this.classList.remove('dragover')"
+    ondrop="handleDrop(event)">
+    <div class="upload-svg">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="1.8" stroke-linecap="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+      </svg>
+    </div>
+    <div class="upload-title">Upload your dataset to get started</div>
+    <div class="upload-sub">Drop <strong>bazaariq_5platform_clean.csv</strong> here &nbsp;·&nbsp; or <span>click to browse</span></div>
+    <input type="file" id="fileInput" accept=".csv" onchange="loadCSV(this.files[0])"/>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row hidden" id="statsRow">
+    <div class="stat-card">
+      <div class="stat-label">Total Products</div>
+      <div class="stat-value" id="statTotal">—</div>
+      <div class="stat-sub">across all platforms</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Platforms</div>
+      <div class="stat-value" id="statPlatforms">—</div>
+      <div class="stat-sub">loaded &amp; ready</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Categories</div>
+      <div class="stat-value" id="statCats">—</div>
+      <div class="stat-sub">super-categories</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Discount</div>
+      <div class="stat-value" id="statDiscount">—</div>
+      <div class="stat-sub">across all products</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Rating</div>
+      <div class="stat-value" id="statRating">—</div>
+      <div class="stat-sub">out of 5.0</div>
+    </div>
+  </div>
+
+  <!-- ══ COMPARE TAB ══ -->
+  <div class="tab-panel active" id="tab-compare">
+
+    <div class="section-head">
+      <div class="section-head-line"></div>
+      <h2>Cross-Platform Price Comparison</h2>
+    </div>
+
+    <div class="compare-controls">
+      <div class="filter-group">
+        <label class="filter-label">Select Category</label>
+        <select class="compare-select" id="catCompareSelect">
+          <option value="">— choose a product category —</option>
+        </select>
+      </div>
+      <button class="compare-btn" onclick="runComparison()">Run Comparison &#8594;</button>
+    </div>
+
+    <div class="winners-row hidden" id="winnersRow">
+      <div class="winner-card">
+        <div class="winner-num">Cheapest</div>
+        <div class="winner-label">Avg Price</div>
+        <div class="winner-platform" id="winCheap">—</div>
+        <div class="winner-val" id="winCheapVal">—</div>
+      </div>
+      <div class="winner-card">
+        <div class="winner-num">Best Deal</div>
+        <div class="winner-label">Highest Discount</div>
+        <div class="winner-platform" id="winDisc">—</div>
+        <div class="winner-val" id="winDiscVal">—</div>
+      </div>
+      <div class="winner-card">
+        <div class="winner-num">Top Rated</div>
+        <div class="winner-label">Avg Rating</div>
+        <div class="winner-platform" id="winRating">—</div>
+        <div class="winner-val" id="winRatingVal">—</div>
+      </div>
+      <div class="winner-card">
+        <div class="winner-num">Best Value</div>
+        <div class="winner-label">Value Score</div>
+        <div class="winner-platform" id="winValue">—</div>
+        <div class="winner-val" id="winValueVal">—</div>
+      </div>
+    </div>
+
+    <div class="compare-table-wrap hidden" id="compareTableWrap">
+      <table class="compare-table">
+        <thead><tr>
+          <th>Platform</th><th>Products</th><th>Min Price</th>
+          <th>Avg Price</th><th>Max Price</th><th>Avg Discount</th>
+          <th>Avg Rating</th><th>Value Score</th><th>Potential Saving</th>
+        </tr></thead>
+        <tbody id="compareTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="chart-grid hidden" id="compareCharts">
+      <div class="chart-card">
+        <div class="chart-label">Average price per platform (&#8377;)</div>
+        <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Average discount % per platform</div>
+        <div class="chart-wrap"><canvas id="discChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Price range — min / avg / max</div>
+        <div class="chart-wrap"><canvas id="rangeChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-label">Value score per platform</div>
+        <div class="chart-wrap"><canvas id="valueChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="insight-box hidden" id="insightBox">
+      <div class="insight-label">AI Buying Insight</div>
+      <div class="insight-text" id="insightText">Loading...</div>
+      <button class="ai-btn" onclick="getCompareInsight()">&#8635; Regenerate</button>
+    </div>
+
+  </div>
+
+  <!-- ══ BROWSE TAB ══ -->
+  <div class="tab-panel" id="tab-browse">
+
+    <div class="section-head">
+      <div class="section-head-line"></div>
+      <h2>Browse &amp; Search Products</h2>
+    </div>
+
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label class="filter-label">Search</label>
+        <input class="filter-input" id="searchInput" type="text"
+          placeholder='Search products e.g. "earphones", "shirt"...'
+          oninput="debounceFilter()"/>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Platform</label>
+        <select class="filter-select" id="platFilter" onchange="applyFilters()">
+          <option value="">All Platforms</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Max Price (&#8377;)</label>
+        <input class="filter-input" id="priceMax" type="number"
+          placeholder="e.g. 2000" oninput="debounceFilter()"/>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Min Rating</label>
+        <select class="filter-select" id="ratingFilter" onchange="applyFilters()">
+          <option value="0">Any Rating</option>
+          <option value="3">3&#9733;+</option>
+          <option value="3.5">3.5&#9733;+</option>
+          <option value="4">4&#9733;+</option>
+          <option value="4.5">4.5&#9733;+</option>
+        </select>
+      </div>
+      <button class="filter-btn" onclick="resetFilters()">Reset</button>
+    </div>
+
+    <div class="results-meta hidden" id="resultsMeta">
+      <div class="results-count" id="resultsCount"></div>
+      <div class="sort-wrap">Sort by
+        <select id="sortSelect" onchange="applyFilters()">
+          <option value="value_score">Value Score</option>
+          <option value="price_asc">Price &#8593;</option>
+          <option value="price_desc">Price &#8595;</option>
+          <option value="rating">Rating</option>
+          <option value="discount">Discount %</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="browse-grid">
+      <div>
+        <div class="table-wrap">
+          <table class="prod-table">
+            <thead><tr>
+              <th>Product</th><th>Platform</th><th>Price</th>
+              <th>MRP</th><th>Disc</th><th>Rating</th><th>Value</th>
+            </tr></thead>
+            <tbody id="prodTableBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+      <div class="right-panel">
+        <div class="detail-card" id="detailCard">
+          <div class="detail-placeholder">Select any product from the table to see details</div>
+        </div>
+        <div class="ai-card" id="aiCard">
+          <div class="ai-label">AI Recommendation</div>
+          <div class="ai-text" id="aiText">Select a product to get a personalised buying recommendation.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const PLATFORM_COLORS={Amazon:'#ff9900',Flipkart:'#6c63ff',Myntra:'#f43397',Meesho:'#f97316',Snapdeal:'#ef4444'};
+const CATEGORY_MAP=[
+  [['electronics','computer','laptop','mobile','phone','camera','tv','television','audio','headphone','earphone','speaker','tablet','printer','monitor','keyboard','mouse','usb','charger','cable','battery'],'Electronics'],
+  [['men ','shirt','trouser','jeans','kurta','t-shirt','tshirt','suit'],'Fashion - Men'],
+  [['women','saree','dress','kurti','lehenga','blouse','skirt','top ','salwar'],'Fashion - Women'],
+  [['shoe','sandal','boot','slipper','footwear','heel','sneaker'],'Footwear'],
+  [['home ','kitchen','furniture','cookware','bedding','bath','lamp','curtain','storage'],'Home & Kitchen'],
+  [['beauty','skincare','haircare','makeup','perfume','grooming','cream','shampoo'],'Beauty & Personal Care'],
+  [['sport','fitness','gym','yoga','cycle','cricket'],'Sports & Fitness'],
+  [['book','stationery',' pen ','notebook'],'Books & Stationery'],
+  [['bag','wallet','watch','jewel','accessory','purse'],'Bags & Accessories'],
+  [['toy','baby','kids','child'],'Toys & Baby'],
+];
+function getSuperCat(raw){
+  if(!raw)return'Other';
+  const l=' '+raw.toLowerCase()+' ';
+  for(const[keys,cat]of CATEGORY_MAP)if(keys.some(k=>l.includes(k)))return cat;
+  return raw.split(/[|>\/]/)[0].trim()||'Other';
+}
+
+let allData=[],filtered=[],selectedRow=null,currentPage=1;
+const PAGE_SIZE=12;
+let filterTimer=null,charts={};
+let lastCompareData=null,lastCompareCat='';
+let ANTHROPIC_KEY=localStorage.getItem('pr_key')||'';
+
+if(ANTHROPIC_KEY){document.getElementById('apiKeyInput').value=ANTHROPIC_KEY;show('keyOk');}
+function saveKey(){const k=document.getElementById('apiKeyInput').value.trim();if(!k)return;ANTHROPIC_KEY=k;localStorage.setItem('pr_key',k);show('keyOk');}
+
+function handleDrop(e){e.preventDefault();document.getElementById('uploadBanner').classList.remove('dragover');const f=e.dataTransfer.files[0];if(f&&f.name.endsWith('.csv'))loadCSV(f);}
+function parseCSVLine(line){const r=[];let c='',q=false;for(let i=0;i<line.length;i++){if(line[i]==='"'){q=!q;continue;}if(line[i]===','&&!q){r.push(c);c='';continue;}c+=line[i];}r.push(c);return r;}
+function cleanNum(val){if(val===null||val===undefined||val==='')return 0;const s=String(val).replace(/[₹,%\s]/g,'').replace(/,/g,'').trim();const n=parseFloat(s);return isNaN(n)?0:n;}
+
+function loadCSV(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const lines=e.target.result.split('\n').filter(l=>l.trim());
+    if(lines.length<2){alert('CSV appears empty.');return;}
+    const headers=parseCSVLine(lines[0]);
+    console.log('Headers:',headers);
+    const h=headers.map(x=>x.trim().toLowerCase());
+    const col=kws=>{for(const kw of kws){const i=h.findIndex(x=>x.includes(kw));if(i>=0)return headers[i].trim();}return null;};
+    const COL={
+      name:col(['product_name','name','title','product']),
+      platform:col(['platform']),
+      category:col(['category','categ','department','type']),
+      supercat:col(['super_category','super_cat']),
+      price:col(['discounted_price','selling_price','sale_price','price']),
+      mrp:col(['actual_price','retail_price','mrp','original_price','market_price']),
+      disc:col(['discount_percentage','discount_percent','discount']),
+      rating:col(['rating']),
+      count:col(['rating_count','review_count','no_of_ratings','reviews']),
+      savings:col(['savings_amount','savings']),
+      value:col(['value_score','value']),
+      power:col(['review_power']),
+      tier:col(['price_tier']),
+    };
+    const rawRows=lines.slice(1).map(line=>{const vals=parseCSVLine(line);const obj={};headers.forEach((hdr,i)=>obj[hdr.trim()]=(vals[i]||'').trim());return obj;});
+    allData=rawRows.map(obj=>{
+      const raw=COL.category?obj[COL.category]||'':'';
+      const price=COL.price?cleanNum(obj[COL.price]):0;
+      const mrp=COL.mrp?cleanNum(obj[COL.mrp]):price;
+      const disc=COL.disc?cleanNum(obj[COL.disc]):(mrp>0&&price>0?Math.round((mrp-price)/mrp*100):0);
+      return{
+        product_name:(COL.name?obj[COL.name]||'Unknown':'Unknown').split(',')[0].trim(),
+        platform:COL.platform?(obj[COL.platform]||'Amazon'):'Amazon',
+        category:raw,
+        super_category:COL.supercat?(obj[COL.supercat]||getSuperCat(raw)):getSuperCat(raw),
+        discounted_price:price,actual_price:mrp||price,discount_percentage:disc,
+        rating:COL.rating?cleanNum(obj[COL.rating]):0,
+        rating_count:COL.count?cleanNum(obj[COL.count]):0,
+        savings_amount:COL.savings?cleanNum(obj[COL.savings]):(mrp-price),
+        value_score:COL.value?cleanNum(obj[COL.value]):0,
+        review_power:COL.power?cleanNum(obj[COL.power]):0,
+        price_tier:COL.tier?obj[COL.tier]||'':'',
+      };
+    }).filter(r=>r.discounted_price>0);
+    console.log(`Loaded ${allData.length} rows`,[...new Set(allData.map(r=>r.platform))]);
+    if(!allData.length){alert('No valid rows found. Check the browser console for details.');return;}
+    hide('uploadBanner');
+    buildStats();populateCatSelect();populatePlatFilter();
+    applyFilters();show('statsRow');show('resultsMeta');
+    // animate stats
+    document.querySelectorAll('.stat-card').forEach((c,i)=>{c.style.animationDelay=i*0.06+'s';c.classList.add('anim');});
+  };
+  reader.readAsText(file);
+}
+
+function buildStats(){
+  const plats=[...new Set(allData.map(r=>r.platform))];
+  const cats=[...new Set(allData.map(r=>r.super_category))].filter(c=>c!=='Other');
+  const avgD=(allData.reduce((s,r)=>s+r.discount_percentage,0)/allData.length).toFixed(1);
+  const rated=allData.filter(r=>r.rating>0);
+  const avgR=(rated.reduce((s,r)=>s+r.rating,0)/rated.length).toFixed(2);
+  document.getElementById('statTotal').textContent=allData.length.toLocaleString();
+  document.getElementById('statPlatforms').textContent=plats.length;
+  document.getElementById('statCats').textContent=cats.length;
+  document.getElementById('statDiscount').textContent=avgD+'%';
+  document.getElementById('statRating').textContent=avgR+'★';
+}
+
+function switchTab(name){
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',['compare','browse'][i]===name));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function populateCatSelect(){
+  const cats=[...new Set(allData.map(r=>r.super_category))].filter(c=>c!=='Other').sort();
+  const sel=document.getElementById('catCompareSelect');
+  cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+}
+function populatePlatFilter(){
+  const plats=[...new Set(allData.map(r=>r.platform))].sort();
+  const sel=document.getElementById('platFilter');
+  plats.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
+}
+
+function runComparison(){
+  const cat=document.getElementById('catCompareSelect').value;
+  if(!cat){alert('Please choose a category first.');return;}
+  const subset=allData.filter(r=>r.super_category===cat);
+  const plats=[...new Set(subset.map(r=>r.platform))];
+  const stats=plats.map(p=>{
+    const ps=subset.filter(r=>r.platform===p);
+    const prices=ps.map(r=>r.discounted_price);
+    const ratings=ps.map(r=>r.rating).filter(v=>v>0);
+    return{platform:p,count:ps.length,
+      minPrice:Math.min(...prices),avgPrice:prices.reduce((s,v)=>s+v,0)/prices.length,
+      maxPrice:Math.max(...prices),avgDisc:ps.reduce((s,r)=>s+r.discount_percentage,0)/ps.length,
+      avgRating:ratings.length?ratings.reduce((s,v)=>s+v,0)/ratings.length:null,
+      avgValue:ps.reduce((s,r)=>s+r.value_score,0)/ps.length};
+  });
+  lastCompareData=stats;lastCompareCat=cat;
+  const maxAvgP=Math.max(...stats.map(s=>s.avgPrice));
+  const cheapest=stats.reduce((a,b)=>a.avgPrice<b.avgPrice?a:b);
+  const bestDisc=stats.reduce((a,b)=>a.avgDisc>b.avgDisc?a:b);
+  const ratedStats=stats.filter(s=>s.avgRating!=null);
+  const bestRating=ratedStats.length?ratedStats.reduce((a,b)=>a.avgRating>b.avgRating?a:b):cheapest;
+  const bestValue=stats.reduce((a,b)=>a.avgValue>b.avgValue?a:b);
+  function setW(id,vid,plat,val){
+    const el=document.getElementById(id);el.textContent=plat;
+    el.style.color=PLATFORM_COLORS[plat]||'var(--navy)';
+    document.getElementById(vid).textContent=val;
+  }
+  setW('winCheap','winCheapVal',cheapest.platform,'₹'+cheapest.avgPrice.toLocaleString('en-IN',{maximumFractionDigits:0}));
+  setW('winDisc','winDiscVal',bestDisc.platform,bestDisc.avgDisc.toFixed(1)+'% avg');
+  setW('winRating','winRatingVal',bestRating.platform,bestRating.avgRating!=null?bestRating.avgRating.toFixed(2)+'★':'—');
+  setW('winValue','winValueVal',bestValue.platform,'score '+bestValue.avgValue.toFixed(3));
+  show('winnersRow');
+  document.querySelectorAll('.winner-card').forEach((c,i)=>{c.style.animationDelay=i*0.07+'s';c.classList.add('anim');});
+
+  const tbody=document.getElementById('compareTableBody');
+  tbody.innerHTML=stats.sort((a,b)=>a.avgPrice-b.avgPrice).map(s=>{
+    const saving=maxAvgP-s.avgPrice;
+    const col=PLATFORM_COLORS[s.platform]||'#334155';
+    const barW=(s.avgPrice/maxAvgP*100).toFixed(1);
+    return`<tr class="${s.platform===cheapest.platform?'winner-row':''}">
+      <td><div class="platform-cell"><span class="platform-dot" style="background:${col}"></span><strong style="color:var(--navy)">${s.platform}</strong>${s.platform===cheapest.platform?'<span class="cheapest-tag">CHEAPEST</span>':''}</div></td>
+      <td>${s.count.toLocaleString()}</td>
+      <td>₹${s.minPrice.toLocaleString('en-IN',{maximumFractionDigits:0})}</td>
+      <td><div class="price-bar-wrap">₹${s.avgPrice.toLocaleString('en-IN',{maximumFractionDigits:0})}<div class="price-bar-track"><div class="price-bar-fill" style="width:${barW}%;background:${col}"></div></div></div></td>
+      <td>₹${s.maxPrice.toLocaleString('en-IN',{maximumFractionDigits:0})}</td>
+      <td>${s.avgDisc.toFixed(1)}%</td>
+      <td>${s.avgRating!=null?s.avgRating.toFixed(2)+'★':'—'}</td>
+      <td>${s.avgValue.toFixed(3)}</td>
+      <td class="${saving>0?'saving-highlight':''}">
+        ${saving>0?'Save ₹'+saving.toLocaleString('en-IN',{maximumFractionDigits:0}):'—'}
+      </td>
+    </tr>`;
+  }).join('');
+  show('compareTableWrap');
+  renderCharts(stats);show('compareCharts');
+  show('insightBox');getCompareInsight();
+}
+
+function renderCharts(stats){
+  const labels=stats.map(s=>s.platform);
+  const cols=stats.map(s=>PLATFORM_COLORS[s.platform]||'#334155');
+  const colsA=cols.map(c=>c+'cc');
+  const base={responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{color:'#1e3a8a',font:{size:10,family:"'JetBrains Mono',monospace"}},
+         grid:{color:'rgba(124,58,237,0.05)'},border:{color:'rgba(124,58,237,0.1)'}},
+      y:{ticks:{color:'#1e3a8a',font:{size:9,family:"'JetBrains Mono',monospace"}},
+         grid:{color:'rgba(124,58,237,0.05)'},border:{color:'rgba(124,58,237,0.1)'}}
+    }};
+  ['priceChart','discChart','rangeChart','valueChart'].forEach(id=>{if(charts[id])charts[id].destroy();});
+  charts.priceChart=new Chart(document.getElementById('priceChart'),{type:'bar',data:{labels,datasets:[{data:stats.map(s=>s.avgPrice.toFixed(0)),backgroundColor:colsA,borderColor:cols,borderWidth:1.5,borderRadius:8}]},options:{...base,plugins:{...base.plugins,tooltip:{callbacks:{label:ctx=>'₹'+Number(ctx.raw).toLocaleString()}}},scales:{...base.scales,y:{...base.scales.y,ticks:{...base.scales.y.ticks,callback:v=>'₹'+Number(v).toLocaleString()}}}}});
+  charts.discChart=new Chart(document.getElementById('discChart'),{type:'bar',data:{labels,datasets:[{data:stats.map(s=>s.avgDisc.toFixed(1)),backgroundColor:colsA,borderColor:cols,borderWidth:1.5,borderRadius:8}]},options:{...base,plugins:{...base.plugins,tooltip:{callbacks:{label:ctx=>ctx.raw+'%'}}},scales:{...base.scales,y:{...base.scales.y,ticks:{...base.scales.y.ticks,callback:v=>v+'%'}}}}});
+  charts.rangeChart=new Chart(document.getElementById('rangeChart'),{type:'bar',data:{labels,datasets:[{label:'Max',data:stats.map(s=>s.maxPrice.toFixed(0)),backgroundColor:cols.map(c=>c+'33'),borderRadius:8},{label:'Avg',data:stats.map(s=>s.avgPrice.toFixed(0)),backgroundColor:colsA,borderRadius:8},{label:'Min',data:stats.map(s=>s.minPrice.toFixed(0)),backgroundColor:cols,borderRadius:8}]},options:{...base,plugins:{legend:{display:true,labels:{color:'#334155',font:{size:9,family:"'JetBrains Mono',monospace"}}}},scales:{...base.scales,y:{...base.scales.y,ticks:{...base.scales.y.ticks,callback:v=>'₹'+Number(v).toLocaleString()}}}}});
+  charts.valueChart=new Chart(document.getElementById('valueChart'),{type:'bar',data:{labels,datasets:[{data:stats.map(s=>s.avgValue.toFixed(3)),backgroundColor:colsA,borderColor:cols,borderWidth:1.5,borderRadius:8}]},options:{...base}});
+}
+
+async function getCompareInsight(){
+  if(!lastCompareData)return;
+  const el=document.getElementById('insightText');
+  el.className='insight-text loading pulsing';el.textContent='Generating insight…';
+  const cheapest=lastCompareData.reduce((a,b)=>a.avgPrice<b.avgPrice?a:b);
+  const bestValue=lastCompareData.reduce((a,b)=>a.avgValue>b.avgValue?a:b);
+  const mostExp=lastCompareData.reduce((a,b)=>a.avgPrice>b.avgPrice?a:b);
+  const saving=mostExp.avgPrice-cheapest.avgPrice;
+  if(!ANTHROPIC_KEY){
+    el.className='insight-text anim';
+    el.innerHTML=`For <strong>${lastCompareCat}</strong>, <strong style="color:${PLATFORM_COLORS[cheapest.platform]||'#fff'}">${cheapest.platform}</strong> is the cheapest platform — avg ₹${cheapest.avgPrice.toLocaleString('en-IN',{maximumFractionDigits:0})}. Buying here instead of ${mostExp.platform} saves you ₹${saving.toLocaleString('en-IN',{maximumFractionDigits:0})} on average. <strong style="color:${PLATFORM_COLORS[bestValue.platform]||'#fff'}">${bestValue.platform}</strong> has the best value score (${bestValue.avgValue.toFixed(3)}) — the best balance of price and quality.`;
+    return;
+  }
+  try{
+    const summary=lastCompareData.map(s=>`${s.platform}: avg ₹${s.avgPrice.toFixed(0)}, ${s.avgDisc.toFixed(1)}% off, ${s.avgRating!=null?s.avgRating.toFixed(2)+'★':'no rating'}, value ${s.avgValue.toFixed(3)}`).join('\n');
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,messages:[{role:'user',content:`Indian shopper comparing ${lastCompareCat} across platforms:\n${summary}\n\nIn 3 crisp sentences: 1) best platform and why (use numbers) 2) how much they save by choosing right 3) one buying tip. No markdown.`}]})});
+    const data=await res.json();
+    el.className='insight-text anim';
+    el.textContent=data.content?.map(b=>b.text||'').join('')||'Could not generate insight.';
+  }catch(e){
+    el.className='insight-text';
+    el.textContent=`${cheapest.platform} offers the lowest average price for ${lastCompareCat} at ₹${cheapest.avgPrice.toLocaleString('en-IN',{maximumFractionDigits:0})}. Buying here saves ₹${saving.toLocaleString('en-IN',{maximumFractionDigits:0})} vs ${mostExp.platform}. ${bestValue.platform} has the best value score — ideal if quality matters most.`;
+  }
+}
+
+function debounceFilter(){clearTimeout(filterTimer);filterTimer=setTimeout(applyFilters,280);}
+function applyFilters(){
+  const search=document.getElementById('searchInput').value.toLowerCase().trim();
+  const plat=document.getElementById('platFilter').value;
+  const maxP=parseFloat(document.getElementById('priceMax').value)||Infinity;
+  const minR=parseFloat(document.getElementById('ratingFilter').value)||0;
+  const sort=document.getElementById('sortSelect').value;
+  filtered=allData.filter(r=>{
+    if(search&&!r.product_name.toLowerCase().includes(search))return false;
+    if(plat&&r.platform!==plat)return false;
+    if(r.discounted_price>maxP)return false;
+    if(r.rating>0&&r.rating<minR)return false;
+    return true;
+  });
+  filtered.sort((a,b)=>{
+    if(sort==='value_score')return b.value_score-a.value_score;
+    if(sort==='price_asc')return a.discounted_price-b.discounted_price;
+    if(sort==='price_desc')return b.discounted_price-a.discounted_price;
+    if(sort==='rating')return b.rating-a.rating;
+    if(sort==='discount')return b.discount_percentage-a.discount_percentage;
+    return 0;
+  });
+  currentPage=1;renderTable();renderPagination();
+  document.getElementById('resultsCount').innerHTML=`Showing <strong>${filtered.length.toLocaleString()}</strong> of <strong>${allData.length.toLocaleString()}</strong> products`;
+}
+function resetFilters(){document.getElementById('searchInput').value='';document.getElementById('platFilter').value='';document.getElementById('priceMax').value='';document.getElementById('ratingFilter').value='0';document.getElementById('sortSelect').value='value_score';applyFilters();}
+
+function renderTable(){
+  const start=(currentPage-1)*PAGE_SIZE;
+  const page=filtered.slice(start,start+PAGE_SIZE);
+  const tbody=document.getElementById('prodTableBody');
+  if(!page.length){tbody.innerHTML=`<tr><td colspan="7"><div class="empty-state">No products match your filters. Try adjusting the search or filters above.</div></td></tr>`;return;}
+  tbody.innerHTML=page.map((r,i)=>{
+    const idx=start+i;
+    const dc=r.discount_percentage>=60?'disc-mega':r.discount_percentage>=40?'disc-high':r.discount_percentage>=20?'disc-mid':'disc-low';
+    const col=PLATFORM_COLORS[r.platform]||'#334155';
+    return`<tr onclick="selectProduct(${idx})" data-idx="${idx}">
+      <td><div class="pname">${r.product_name}</div><div class="pcat">${r.super_category}</div></td>
+      <td><span class="platform-badge" style="background:${col}18;color:${col};border:1px solid ${col}55">${r.platform}</span></td>
+      <td class="price-cell">₹${r.discounted_price.toLocaleString()}</td>
+      <td style="font-size:11px;color:var(--text4);font-family:'JetBrains Mono',monospace;text-decoration:line-through">₹${r.actual_price.toLocaleString()}</td>
+      <td><span class="disc-badge ${dc}">${r.discount_percentage.toFixed(0)}%</span></td>
+      <td class="rating-cell">${r.rating>0?r.rating.toFixed(1)+'★':'—'}</td>
+      <td style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--purple);font-weight:600">${r.value_score.toFixed(3)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPagination(){
+  const total=Math.ceil(filtered.length/PAGE_SIZE);
+  const pg=document.getElementById('pagination');
+  if(total<=1){pg.innerHTML='';return;}
+  let html=`<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>&#8592;</button>`;
+  const s=Math.max(1,currentPage-2),e=Math.min(total,currentPage+2);
+  if(s>1)html+=`<button class="page-btn" onclick="goPage(1)">1</button>${s>2?'<span style="color:var(--text4);padding:0 4px">…</span>':''}`;
+  for(let i=s;i<=e;i++)html+=`<button class="page-btn${i===currentPage?' active':''}" onclick="goPage(${i})">${i}</button>`;
+  if(e<total)html+=`${e<total-1?'<span style="color:var(--text4);padding:0 4px">…</span>':''}<button class="page-btn" onclick="goPage(${total})">${total}</button>`;
+  html+=`<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled':''}>&#8594;</button>`;
+  pg.innerHTML=html;
+}
+function goPage(p){currentPage=p;renderTable();renderPagination();}
+
+function selectProduct(idx){
+  selectedRow=filtered[idx];
+  document.querySelectorAll('.prod-table tr').forEach(tr=>tr.classList.remove('selected'));
+  document.querySelectorAll('.prod-table tr').forEach(tr=>{if(parseInt(tr.dataset.idx)===idx)tr.classList.add('selected');});
+  renderDetail(selectedRow);getProductAI(selectedRow);
+}
+
+function renderDetail(r){
+  const col=PLATFORM_COLORS[r.platform]||'#334155';
+  const dc=r.discount_percentage>=60?'disc-mega':r.discount_percentage>=40?'disc-high':r.discount_percentage>=20?'disc-mid':'disc-low';
+  const maxVS=Math.max(...filtered.map(x=>x.value_score))||1;
+  const maxRP=Math.max(...filtered.map(x=>x.review_power))||1;
+  document.getElementById('detailCard').innerHTML=`
+    <div class="detail-title">${r.product_name}</div>
+    <div class="price-row-top">
+      <span class="big-price">₹${r.discounted_price.toLocaleString()}</span>
+      <span class="big-mrp">₹${r.actual_price.toLocaleString()}</span>
+      <span class="disc-badge ${dc}">${r.discount_percentage.toFixed(0)}% off</span>
+    </div>
+    <div class="detail-row"><span class="detail-key">Platform</span><span class="detail-val" style="color:${col}">${r.platform}</span></div>
+    <div class="detail-row"><span class="detail-key">Category</span><span class="detail-val">${r.super_category}</span></div>
+    <div class="detail-row"><span class="detail-key">Rating</span><span class="detail-val">${r.rating>0?r.rating.toFixed(1)+' ★':'—'}</span></div>
+    <div class="detail-row"><span class="detail-key">Reviews</span><span class="detail-val">${r.rating_count>0?r.rating_count.toLocaleString():'—'}</span></div>
+    <div class="detail-row"><span class="detail-key">You save</span><span class="detail-val" style="color:var(--green)">₹${r.savings_amount.toLocaleString()}</span></div>
+    <div class="scores">
+      <div class="score-row"><span class="score-lbl">Value</span><div class="score-track"><div class="score-fill" style="width:${(r.value_score/maxVS*100).toFixed(1)}%;background:linear-gradient(90deg,var(--navy3),var(--purple2))"></div></div><span class="score-num">${r.value_score.toFixed(2)}</span></div>
+      <div class="score-row"><span class="score-lbl">Rating</span><div class="score-track"><div class="score-fill" style="width:${(r.rating/5*100).toFixed(1)}%;background:var(--amber)"></div></div><span class="score-num">${r.rating.toFixed(1)}</span></div>
+      <div class="score-row"><span class="score-lbl">Discount</span><div class="score-track"><div class="score-fill" style="width:${Math.min(100,r.discount_percentage).toFixed(1)}%;background:var(--green)"></div></div><span class="score-num">${r.discount_percentage.toFixed(0)}%</span></div>
+      <div class="score-row"><span class="score-lbl">Popularity</span><div class="score-track"><div class="score-fill" style="width:${(r.review_power/maxRP*100).toFixed(1)}%;background:var(--pink)"></div></div><span class="score-num">${(r.review_power/maxRP*5).toFixed(1)}</span></div>
+    </div>`;
+  document.getElementById('detailCard').classList.add('slide-in');
+}
+
+async function getProductAI(r){
+  const el=document.getElementById('aiText');
+  el.className='ai-text loading pulsing';el.textContent='Generating recommendation…';
+  if(!ANTHROPIC_KEY){
+    el.className='ai-text';
+    const good=r.discount_percentage>=30&&r.rating>=4;
+    el.textContent=good?`Good deal — ${r.discount_percentage.toFixed(0)}% off with ${r.rating}/5 rating on ${r.platform}. You save ₹${r.savings_amount.toLocaleString()}. Recommended.`:`${r.discount_percentage.toFixed(0)}% off on ${r.platform}. Rated ${r.rating>0?r.rating+'/5':'N/A'}. Use the Compare tab to check if another platform has better pricing for this category.`;
+    return;
+  }
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:160,messages:[{role:'user',content:`Product: "${r.product_name}" on ${r.platform}\nPrice: ₹${r.discounted_price} (${r.discount_percentage.toFixed(0)}% off ₹${r.actual_price})\nRating: ${r.rating>0?r.rating+'/5':'no rating'}\nValue score: ${r.value_score.toFixed(3)}\n\nIn 2-3 sentences: good deal? why? one tip. No markdown.`}]})});
+    const data=await res.json();
+    el.className='ai-text anim';
+    el.textContent=data.content?.map(b=>b.text||'').join('')||'Could not generate recommendation.';
+  }catch(e){
+    el.className='ai-text';
+    el.textContent=`${r.discount_percentage.toFixed(0)}% off on ${r.platform}. Value score ${r.value_score.toFixed(3)}. Check the Compare tab to see if another platform is cheaper for ${r.super_category}.`;
+  }
+}
+
+function show(id){document.getElementById(id)?.classList.remove('hidden');}
+function hide(id){document.getElementById(id)?.classList.add('hidden');}
+</script>
+</body>
+</html>
