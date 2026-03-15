@@ -4,11 +4,11 @@ This project is about AI-powered competitive intelligence for Indian e-commerce 
 # 🚀 PriceRadar
 India E-Commerce Price Intelligence Dashboard
 � � � � � �
+
 PriceRadar is an E-commerce price intelligence dashboard that compares product prices, discounts, ratings, and value scores across five major Indian online marketplaces:
 🛒 Amazon
 🛒 Flipkart
 🛒 Myntra
-🛒 Meesho
 🛒 Snapdeal
 The project demonstrates the complete data science pipeline, from data collection to machine learning to an interactive dashboard.
 Built for Datathon 2026.
