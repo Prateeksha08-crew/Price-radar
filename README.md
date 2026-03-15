@@ -3,42 +3,58 @@ This project is about AI-powered competitive intelligence for Indian e-commerce 
 
 # 🚀 PriceRadar
 India E-Commerce Price Intelligence Dashboard
-� � � � � �
+
 
 PriceRadar is an E-commerce price intelligence dashboard that compares product prices, discounts, ratings, and value scores across five major Indian online marketplaces:
+
 🛒 Amazon
+
 🛒 Flipkart
+
 🛒 Myntra
+
 🛒 Snapdeal
+
 The project demonstrates the complete data science pipeline, from data collection to machine learning to an interactive dashboard.
 Built for Datathon 2026.
 
 # 📌 Problem Statement
 Online shoppers often need to manually check multiple platforms to find the best deal.
+
 Example scenario:
 A user wants to buy a laptop or clothing item.
+
 They must visit:
 Amazon
 Flipkart
 Myntra
-Meesho
 Snapdeal
-This process is time-consuming and inefficient.
+T
+his process is time-consuming and inefficient.
 
 # 💡 Solution – PriceRadar
 PriceRadar provides:
+
 ✅ Cross-platform price comparison
+
 ✅ Unified product categories
+
 ✅ Value score for best deals
+
 ✅ AI-powered buying insights
+
 ✅ Interactive data dashboard
 The system aggregates product data from five marketplaces and provides data-driven shopping intelligence.
 
 # 📊 Dataset
 Datasets were collected from Kaggle public repositories.
+
 Platform
+
 Dataset
+
 Approx Rows
+
 Amazon
 amazon-sales-dataset
 ~1,465
@@ -48,9 +64,6 @@ flipkart-products
 Myntra
 myntra-products
 ~20,000
-Meesho
-meesho-products
-~5,000
 Snapdeal
 flipkart-ecommerce-dataset
 ~5,000
